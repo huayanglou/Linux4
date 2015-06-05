@@ -1,7 +1,7 @@
 ﻿#ifndef FILESYS_H
 #define FILESYS_H
 #include<stddef.h>
-#define DEVNAME "/dev/sdb1" //这里要修改成虚拟u盘
+#define DEVNAME "data" //这里要修改成虚拟u盘
 /*
  * 下面这些暴力算的虽然正确，但其实不合法。
  * 我们从BootSector中可以读出整个FAT的参数。
@@ -12,7 +12,7 @@
 #define CLUSTER_SIZE 512*4                         
 #define FAT_ONE_OFFSET 512                       
 #define FAT_TWO_OFFSET 512+250*512                       
-#define ROOTDIR_OFFSET 512+250*512+250*512+512                     
+#define ROOTDIR_OFFSET 512+250*512+250*512
 #define DATA_OFFSET 512+250*512+250*512+512*32        
 
            
