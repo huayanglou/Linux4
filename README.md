@@ -80,7 +80,7 @@ git commit -m "13060000 Step 1"
 
 **助教，我喜欢Zhuangbility，想用Github #_#...** ，然而助教表示这并没有什么额外加分╯□╰
 
-对于这类同学请参考1.1~1.3，**注意**不想用Github的同学请无视掉1.1~1.3。首先你需要设置Github，如果你已经设置好可以略去1.1。如果你不是用ssh而是用的https，那么请自行baidu命令。
+对于这类同学请参考1.1~1.3，首先你需要设置Github，如果你已经设置好可以略去1.1。如果你不是用ssh而是用的https，那么请自行baidu命令。
 
 1.1设置Github
 [添加SSH Key到自己账户](https://help.github.com/articles/generating-ssh-keys/)。**注意** 文中的`pbcopy`是在X OS下才有的命令，Ubuntu用户请自行gedit...
@@ -130,6 +130,22 @@ bdptor.HiddenSectors,
 ROOTDIR_OFFSET);
 ```
 **Step 3**，注意这里只需要按照教程修改完`ROOTDIR_OFFSET` 并且在printf中输出即可提交。其余的位置信息请各位按照自己的需求修改，无需打印输出。但会现场检查（例如DATA_OFFSET源代码就有问题- -。。。默默的吐槽一句源代码质量实在是呵呵）。
+
+我这里给出一个用dd创建的32M（实际大小33M）文件，用msdos格式化以后，通过BootSector读取文件系统结构的正确结果。各位同学可以自己对比一下。例如SectorPerFAT是64，而源代码中手写的是250，所以源代码根本没有管文件结构，是错的。希望大家可以根据Maverick - The Operating System.pdf中的Calculation Algorithms一节进行改正。这里如果有同学觉得吃力，联系一下助教吧。
+```
+Oem_name 		mkfs.fat
+BytesPerSector 		512
+SectorsPerCluster 	4
+ReservedSector 		1
+FATs 			2
+RootDirEntries 		512
+LogicSectors 		65536
+MedioType 		248
+SectorPerFAT 		64
+SectorPerTrack 		32
+Heads 			64
+HiddenSectors 		0
+```
 
 3.挂载data到`/dev/sdb1`，在图形界面中打开该目录（就是不用命令行啦，用类似于windows的方式进入该目录），然后人工添加一个文件。而后卸载data。在终端中执行`./filesys`，然后输入`ls`，程序应该能正确识别出你刚才添加的文件。**Step 4**
 
