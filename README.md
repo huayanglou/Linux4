@@ -115,7 +115,7 @@ int ROOTDIR_OFFSET = -1;
 \\修改后.c中的代码：
 void ScanBootSector() {
 ...
-ROOTDIR_OFFSET = bdptor.BytesPerSector + bdptor.FATs * bdptor.SectorsPerFAT * bdptor.BytesPerSector;
+ROOTDIR_OFFSET = bdptor.BytesPerSector*bdptor.ReservedSectors + bdptor.FATs * bdptor.SectorsPerFAT * bdptor.BytesPerSector;
 
 printf("Oem_name \t\t%s\n"...
 }
