@@ -14,24 +14,24 @@
  * 一般来说，硬盘上是高位存储，电脑上是低位存储。但这不是确定的。
  * 参考资料http://www.cnblogs.com/renyuan/archive/2013/05/26/3099766.html
  */
-/*  
-以0x12345678为例： 
-    Big Endian 
-    低地址                              高地址 
-    -----------------------------------------> 
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
-    |   12   |   34  |   56   |   78    | 
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
-    Little Endian 
-    低地址                              高地址 
-    -----------------------------------------> 
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
-    |   78   |   56  |   34   |   12    | 
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+/*
+以0x12345678为例：
+    Big Endian
+    低地址                              高地址
+    ----------------------------------------->
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |   12   |   34  |   56   |   78    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    Little Endian
+    低地址                              高地址
+    ----------------------------------------->
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |   78   |   56  |   34   |   12    |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
 
 #define RevByte(low,high) ((high)<<8|(low))
-#define RevWord(lowest,lower,higher,highest) ((highest)<< 24|(higher)<<16|(lower)<<8|lowest) 
+#define RevWord(lowest,lower,higher,highest) ((highest)<< 24|(higher)<<16|(lower)<<8|lowest)
 
 /*
  *读取BootSector，获取FAT16的格式信息
@@ -53,7 +53,7 @@ void ScanBootSector()
 	bdptor.SectorsPerCluster = buf[0x0d];
 	bdptor.ReservedSectors = RevByte(buf[0x0e],buf[0x0f]);
 	bdptor.FATs = buf[0x10];
-	bdptor.RootDirEntries = RevByte(buf[0x11],buf[0x12]);    
+	bdptor.RootDirEntries = RevByte(buf[0x11],buf[0x12]);
 	bdptor.LogicSectors = RevByte(buf[0x13],buf[0x14]);
 	if (bdptor.LogicSectors == 0)
 	  bdptor.LogicSectors =RevWord(buf[0x20],buf[0x21],buf[0x22],buf[0x23]);
@@ -62,8 +62,8 @@ void ScanBootSector()
 	bdptor.SectorsPerTrack = RevByte(buf[0x18],buf[0x19]);
 	bdptor.Heads = RevByte(buf[0x1a],buf[0x1b]);
 	bdptor.HiddenSectors = RevByte(buf[0x1c],buf[0x1d]);
+    ROOTDIR_OFFSET = bdptor.BytesPerSector*bdptor.ReservedSectors + bdptor.FATs * bdptor.SectorsPerFAT * bdptor.BytesPerSector;
 
-	
 	printf("Oem_name \t\t%s\n"
 		"BytesPerSector \t\t%d\n"
 		"SectorsPerCluster \t%d\n"
@@ -75,7 +75,8 @@ void ScanBootSector()
 		"SectorPerFAT \t\t%d\n"
 		"SectorPerTrack \t\t%d\n"
 		"Heads \t\t\t%d\n"
-		"HiddenSectors \t\t%d\n",
+		"HiddenSectors \t\t%d\n"
+		"ROOTDIR_OFFSET \t\t%d\n",
 		bdptor.Oem_name,
 		bdptor.BytesPerSector,
 		bdptor.SectorsPerCluster,
@@ -87,7 +88,8 @@ void ScanBootSector()
 		bdptor.SectorsPerFAT,
 		bdptor.SectorsPerTrack,
 		bdptor.Heads,
-		bdptor.HiddenSectors);
+		bdptor.HiddenSectors,
+		ROOTDIR_OFFSET);
 }
 
 /*日期*/
@@ -153,7 +155,7 @@ int GetEntry(struct Entry *pentry)
 	else
 	{
 		/*长文件名，忽略掉*/
-		while (buf[11]== 0x0f) 
+		while (buf[11]== 0x0f)
 		{
 			if((ret = read(fd,buf,DIR_ENTRY_SIZE))<0)
 				perror("read root dir failed");
@@ -165,13 +167,13 @@ int GetEntry(struct Entry *pentry)
 			pentry->short_name[i] = buf[i];
 		pentry->short_name[i] = '\0';
 		//去掉文件名结尾的空格
-		FileNameFormat(pentry->short_name); 
+		FileNameFormat(pentry->short_name);
 
 
 		//以下两个还原文件时间的函数有问题，请参照pdf文档修正
 		info[0]=buf[22];
 		info[1]=buf[23];
-		findTime(&(pentry->hour),&(pentry->min),&(pentry->sec),info);  
+		findTime(&(pentry->hour),&(pentry->min),&(pentry->sec),info);
 
 		info[0]=buf[24];
 		info[1]=buf[25];
@@ -271,7 +273,7 @@ int fd_ls()
 		}
 	}
 	return 0;
-} 
+}
 
 
 /*
@@ -290,7 +292,7 @@ int ScanEntry (char *entryname,struct Entry *pentry,int mode)
 		uppername[i]= toupper(entryname[i]);
 	uppername[i]= '\0';
 	/*扫描根目录*/
-	if(curdir ==NULL)  
+	if(curdir ==NULL)
 	{
 		if((ret = lseek(fd,ROOTDIR_OFFSET,SEEK_SET))<0)
 			perror ("lseek ROOTDIR_OFFSET failed");
@@ -311,7 +313,7 @@ int ScanEntry (char *entryname,struct Entry *pentry,int mode)
 	}
 
 	/*扫描子目录*/
-	else  
+	else
 	{
 		cluster_addr = DATA_OFFSET + (curdir->FirstCluster -2)*CLUSTER_SIZE;
 		if((ret = lseek(fd,cluster_addr,SEEK_SET))<0)
@@ -352,12 +354,12 @@ int fd_cd(char *dir)
 	{
 	  //fatherdir 用于保存父目录信息。
 		curdir = fatherdir[dirno];
-		dirno--; 
+		dirno--;
 		return 1;
 	}
 	//注意此处有内存泄露
 	pentry = (struct Entry*)malloc(sizeof(struct Entry));
-	
+
 	ret = ScanEntry(dir,pentry,1);
 	if(ret < 0)
 	{
@@ -493,7 +495,7 @@ int fd_df(char *filename)
 		perror("lseek fd_df failed");
 	//标记目录表项可用
 	if(write(fd,&c,1)<0)
-		perror("write failed");  
+		perror("write failed");
 
 	/*
         这段话在源程序中存在，但助教感觉这句话是错的。。。o(╯□╰)o
@@ -569,7 +571,7 @@ int fd_cf(char *filename,int size)
 		fatbuf[index+1] = 0xff;
 
 		if(curdir==NULL)  /*往根目录下写文件*/
-		{ 
+		{
 
 			if((ret= lseek(fd,ROOTDIR_OFFSET,SEEK_SET))<0)
 				perror("lseek ROOTDIR_OFFSET failed");
@@ -594,14 +596,14 @@ int fd_cf(char *filename,int size)
 				}
 
 
-				/*找出空目录项或已删除的目录项*/ 
+				/*找出空目录项或已删除的目录项*/
 				else
-				{       
-					offset = offset-abs(ret);     
+				{
+					offset = offset-abs(ret);
 					for(i=0;i<=strlen(filename);i++)
 					{
 						c[i]=toupper(filename[i]);
-					}			
+					}
 					for(;i<=10;i++)
 						c[i]=' ';
 
@@ -636,7 +638,7 @@ int fd_cf(char *filename,int size)
 
 			}
 		}
-		else 
+		else
 		{
 		  //子目录的情况与根目录类似
 			cluster_addr = (curdir->FirstCluster -2 )*CLUSTER_SIZE + DATA_OFFSET;
@@ -660,8 +662,8 @@ int fd_cf(char *filename,int size)
 					}
 				}
 				else
-				{ 
-					offset = offset - abs(ret);      
+				{
+					offset = offset - abs(ret);
 					for(i=0;i<=strlen(filename);i++)
 					{
 						c[i]=toupper(filename[i]);
@@ -752,7 +754,7 @@ int main()
 		}
 		else
 			do_usage();
-	}	
+	}
 
 	return 0;
 }
