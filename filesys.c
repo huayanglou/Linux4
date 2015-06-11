@@ -62,7 +62,11 @@ void ScanBootSector()
 	bdptor.SectorsPerTrack = RevByte(buf[0x18],buf[0x19]);
 	bdptor.Heads = RevByte(buf[0x1a],buf[0x1b]);
 	bdptor.HiddenSectors = RevByte(buf[0x1c],buf[0x1d]);
+
     ROOTDIR_OFFSET = bdptor.BytesPerSector*bdptor.ReservedSectors + bdptor.FATs * bdptor.SectorsPerFAT * bdptor.BytesPerSector;
+    FAT_ONE_OFFSET = bdptor.ReservedSectors * SECTOR_SIZE;
+    FAT_TWO_OFFSET = FAT_ONE_OFFSET+bdptor.SectorsPerFAT*SECTOR_SIZE;
+    DATA_OFFSET = ROOTDIR_OFFSET + bdptor.RootDirEntries * DIR_ENTRY_SIZE;
 
 	printf("Oem_name \t\t%s\n"
 		"BytesPerSector \t\t%d\n"
@@ -76,7 +80,10 @@ void ScanBootSector()
 		"SectorPerTrack \t\t%d\n"
 		"Heads \t\t\t%d\n"
 		"HiddenSectors \t\t%d\n"
-		"ROOTDIR_OFFSET \t\t%d\n",
+		"ROOTDIR_OFFSET \t\t%d\n"
+		"FAT_ONE_OFFSET \t\t%d\n"
+		"FAT_TWO_OFFSET \t\t%d\n"
+		"DATA_OFFSET \t\t%d\n",
 		bdptor.Oem_name,
 		bdptor.BytesPerSector,
 		bdptor.SectorsPerCluster,
@@ -89,7 +96,10 @@ void ScanBootSector()
 		bdptor.SectorsPerTrack,
 		bdptor.Heads,
 		bdptor.HiddenSectors,
-		ROOTDIR_OFFSET);
+		ROOTDIR_OFFSET,
+		FAT_ONE_OFFSET,
+		FAT_TWO_OFFSET,
+		DATA_OFFSET);
 }
 
 /*日期*/
